@@ -1,113 +1,157 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float walkSpeed = 5f;
-    [SerializeField] private float sprintSpeed = 8f;
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private float jumpHeight = 1.5f;
-
-    [Header("Look Settings")]
-    [SerializeField] private float mouseSensitivity = 100f;
-    [SerializeField] private Transform cameraTransform;
-    [SerializeField] private float maxLookAngle = 90f;
-
-    [Header("Head Bob")]
-    [SerializeField] private float bobSpeed = 14f;
-    [SerializeField] private float bobAmount = 0.05f;
-    private float defaultYPos;
-    private float timer = 0;
-
-    private CharacterController characterController;
-    private Vector3 velocity;
+    // Reference to the CharacterController component
+    private CharacterController controller;
+    // Cache for camera rotation
     private float xRotation = 0f;
 
-    private void Start()
+    [Header("Movement Settings")]
+    public float baseSpeed = 5f;
+    public float sprintMultiplier = 2f;
+    public float walkMultiplier = 0.5f;
+    public float jumpHeight = 2f;
+    public float gravity = -9.81f;
+    private Vector3 velocity;
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+    public LayerMask groundMask;
+
+    [Header("Camera Settings")]
+    public float mouseSensitivity = 100f;
+    public Transform playerCamera;
+
+    [Header("Flashlight Settings")]
+    public Light flashlight;
+    private bool flashlightOn = false;
+
+    [Header("Input Actions")]
+    // These InputActions should be assigned via the inspector (from your Input Action asset)
+    [SerializeField] private InputAction moveAction;
+    [SerializeField] private InputAction lookAction;
+    [SerializeField] private InputAction jumpAction;
+    [SerializeField] private InputAction sprintAction;
+    [SerializeField] private InputAction walkAction;
+    [SerializeField] private InputAction crouchAction;
+    [SerializeField] private InputAction interactAction;
+    [SerializeField] private InputAction flashlightAction;
+
+    void Awake()
     {
-        characterController = GetComponent<CharacterController>();
-        defaultYPos = cameraTransform.localPosition.y;
-        
-        // Lock and hide cursor
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        controller = GetComponent<CharacterController>();
+
+        // Enable input actions
+        moveAction.Enable();
+        lookAction.Enable();
+        jumpAction.Enable();
+        sprintAction.Enable();
+        walkAction.Enable();
+        crouchAction.Enable();
+        interactAction.Enable();
+        flashlightAction.Enable();
+
+        // Bind flashlight toggle
+        flashlightAction.performed += ctx => ToggleFlashlight();
+        // Bind interact action
+        interactAction.performed += ctx => Interact();
     }
 
-    private void Update()
+    void Update()
     {
         HandleMovement();
-        HandleMouseLook();
-        HandleHeadBob();
+        HandleLook();
+        HandleJump();
+        HandleCrouch();   // You can expand this as needed.
+        // Other mechanics (sprint, walk modifiers) are handled in movement.
     }
 
-    private void HandleMovement()
+    void HandleMovement()
     {
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        // Read movement input (WASD)
+        Vector2 input = moveAction.ReadValue<Vector2>();
 
-        // Get movement speed
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed;
+        // Determine movement multiplier based on sprint/walk keys
+        float multiplier = 1f;
+        if (sprintAction.IsPressed())
+            multiplier = sprintMultiplier;
+        else if (walkAction.IsPressed())
+            multiplier = walkMultiplier;
 
-        // Calculate movement direction
-        Vector3 move = transform.right * x + transform.forward * z;
-        characterController.Move(move * currentSpeed * Time.deltaTime);
+        // Calculate movement direction in local space
+        Vector3 move = transform.right * input.x + transform.forward * input.y;
+        controller.Move(move * baseSpeed * multiplier * Time.deltaTime);
+
+        // Ground check for gravity and jumping
+        bool isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -2f;
 
         // Apply gravity
-        if (characterController.isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
-        }
-
-        // Jump (optional - remove if not needed)
-        if (Input.GetButtonDown("Jump") && characterController.isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
-
         velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
+        controller.Move(velocity * Time.deltaTime);
     }
 
-    private void HandleMouseLook()
+    void HandleLook()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        // Read mouse movement input
+        Vector2 lookInput = lookAction.ReadValue<Vector2>();
 
-        // Vertical rotation (up/down)
+        float mouseX = lookInput.x * mouseSensitivity * Time.deltaTime;
+        float mouseY = lookInput.y * mouseSensitivity * Time.deltaTime;
+
+        // Adjust vertical rotation and clamp it
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
-        cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        // Horizontal rotation (left/right)
+        // Rotate camera (vertical)
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        // Rotate player (horizontal)
         transform.Rotate(Vector3.up * mouseX);
     }
 
-    private void HandleHeadBob()
+    void HandleJump()
     {
-        if (characterController.velocity.magnitude > 0.1f && characterController.isGrounded)
+        // Check for jump input (Spacebar) and if grounded
+        if (jumpAction.triggered && Physics.CheckSphere(groundCheck.position, groundDistance, groundMask))
         {
-            timer += Time.deltaTime * bobSpeed;
-            float newY = defaultYPos + Mathf.Sin(timer) * bobAmount;
-            cameraTransform.localPosition = new Vector3(
-                cameraTransform.localPosition.x,
-                newY,
-                cameraTransform.localPosition.z
-            );
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
+    }
+
+    void HandleCrouch()
+    {
+        // Example: when left Ctrl is held, reduce height
+        if (crouchAction.IsPressed())
+        {
+            // Adjust CharacterController height (ensure you save original values elsewhere)
+            controller.height = 1.0f;
         }
         else
         {
-            // Reset camera position
-            timer = 0;
-            cameraTransform.localPosition = Vector3.Lerp(
-                cameraTransform.localPosition,
-                new Vector3(
-                    cameraTransform.localPosition.x,
-                    defaultYPos,
-                    cameraTransform.localPosition.z
-                ),
-                Time.deltaTime * bobSpeed
-            );
+            controller.height = 2.0f;
+        }
+    }
+
+    void ToggleFlashlight()
+    {
+        // Toggle flashlight on/off when F is pressed
+        flashlightOn = !flashlightOn;
+        if (flashlight != null)
+            flashlight.enabled = flashlightOn;
+    }
+
+    void Interact()
+    {
+        // Handle interaction logic when E is pressed.
+        // For example: cast a ray and call an Interact() method on the hit object.
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 3f))
+        {
+            hit.collider.gameObject.SendMessage("Interact", SendMessageOptions.DontRequireReceiver);
         }
     }
 }
