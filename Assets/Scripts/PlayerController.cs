@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     // Reference to the CharacterController component
     private CharacterController controller;
-    // Cache for camera rotation
+    // Cache for camera rotation.t
     private float xRotation = 0f;
 
     [Header("Movement Settings")]
