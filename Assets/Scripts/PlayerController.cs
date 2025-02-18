@@ -123,7 +123,7 @@ public class PlayerController : MonoBehaviour
 
     void HandleCrouch()
     {
-        // Example: when left Ctrl is held, reduce height
+        // Example: when left Ctrl is held, reduce height.
         if (crouchAction.IsPressed())
         {
             // Adjust CharacterController height (ensure you save original values elsewhere)
