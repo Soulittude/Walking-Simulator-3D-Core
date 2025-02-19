@@ -4,154 +4,92 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    // Reference to the CharacterController component
+    [Header("Movement")]
+    [SerializeField] private float movementSpeed = 5f;
+    [SerializeField] private float gravity = -9.81f;
+
+    [Header("References")]
+    [SerializeField] private Transform head;          // Reference to Head transform
+    [SerializeField] private Transform fpsCamera;     // Reference to FPCameraMain
+    [SerializeField] private Transform groundCheck;   // Reference to GroundCheck
+
+    [Header("Look")]
+    [SerializeField] private float mouseSensitivity = 100f;
+    [SerializeField] private float verticalLookLimit = 80f;
+
     private CharacterController controller;
-    // Cache for camera rotation.t
-    private float xRotation = 0f;
+    private PlayerInputActions inputActions;
+    private Vector2 movementInput;
+    private Vector2 lookInput;
+    private Vector3 verticalVelocity;
+    private float xRotation;
 
-    [Header("Movement Settings")]
-    public float baseSpeed = 5f;
-    public float sprintMultiplier = 2f;
-    public float walkMultiplier = 0.5f;
-    public float jumpHeight = 2f;
-    public float gravity = -9.81f;
-    private Vector3 velocity;
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
-
-    [Header("Camera Settings")]
-    public float mouseSensitivity = 100f;
-    public Transform playerCamera;
-
-    [Header("Flashlight Settings")]
-    public Light flashlight;
-    private bool flashlightOn = false;
-
-    [Header("Input Actions")]
-    // These InputActions should be assigned via the inspector (from your Input Action asset)
-    [SerializeField] private InputAction moveAction;
-    [SerializeField] private InputAction lookAction;
-    [SerializeField] private InputAction jumpAction;
-    [SerializeField] private InputAction sprintAction;
-    [SerializeField] private InputAction walkAction;
-    [SerializeField] private InputAction crouchAction;
-    [SerializeField] private InputAction interactAction;
-    [SerializeField] private InputAction flashlightAction;
-
-    void Awake()
+    private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        inputActions = new PlayerInputActions();
 
-        // Enable input actions
-        moveAction.Enable();
-        lookAction.Enable();
-        jumpAction.Enable();
-        sprintAction.Enable();
-        walkAction.Enable();
-        crouchAction.Enable();
-        interactAction.Enable();
-        flashlightAction.Enable();
-
-        // Bind flashlight toggle
-        flashlightAction.performed += ctx => ToggleFlashlight();
-        // Bind interact action
-        interactAction.performed += ctx => Interact();
+        // Optional Rigidbody setup
+        if (TryGetComponent(out Rigidbody rb))
+        {
+            rb.isKinematic = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
+        }
     }
 
-    void Update()
+    private void Start() => Cursor.lockState = CursorLockMode.Locked;
+
+    private void OnEnable() => inputActions.Enable();
+    private void OnDisable() => inputActions.Disable();
+
+    private void Update()
     {
-        HandleMovement();
-        HandleLook();
-        HandleJump();
-        HandleCrouch();   // You can expand this as needed.
-        // Other mechanics (sprint, walk modifiers) are handled in movement.
+        HandleMovementInput();
+        HandleLookInput();
+        HandleGravity();
     }
 
-    void HandleMovement()
+    private void FixedUpdate() => ApplyMovement();
+
+    private void HandleMovementInput() => movementInput = inputActions.Player.Move.ReadValue<Vector2>();
+
+    private void HandleLookInput()
     {
-        // Read movement input (WASD)
-        Vector2 input = moveAction.ReadValue<Vector2>();
-
-        // Determine movement multiplier based on sprint/walk keys
-        float multiplier = 1f;
-        if (sprintAction.IsPressed())
-            multiplier = sprintMultiplier;
-        else if (walkAction.IsPressed())
-            multiplier = walkMultiplier;
-
-        // Calculate movement direction in local space
-        Vector3 move = transform.right * input.x + transform.forward * input.y;
-        controller.Move(move * baseSpeed * multiplier * Time.deltaTime);
-
-        // Ground check for gravity and jumping
-        bool isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
-
-        // Apply gravity
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
-    }
-
-    void HandleLook()
-    {
-        // Read mouse movement input
-        Vector2 lookInput = lookAction.ReadValue<Vector2>();
+        lookInput = inputActions.Player.Look.ReadValue<Vector2>();
 
         float mouseX = lookInput.x * mouseSensitivity * Time.deltaTime;
         float mouseY = lookInput.y * mouseSensitivity * Time.deltaTime;
 
-        // Adjust vertical rotation and clamp it
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        // Vertical rotation (Head)
+        xRotation = Mathf.Clamp(xRotation - mouseY, -verticalLookLimit, verticalLookLimit);
+        head.localRotation = Quaternion.Euler(xRotation, 0, 0);
 
-        // Rotate camera (vertical)
-        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        // Rotate player (horizontal)
+        // Horizontal rotation (PlayerRoot)
         transform.Rotate(Vector3.up * mouseX);
     }
 
-    void HandleJump()
+    private void HandleGravity()
     {
-        // Check for jump input (Spacebar) and if grounded
-        if (jumpAction.triggered && Physics.CheckSphere(groundCheck.position, groundDistance, groundMask))
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+        verticalVelocity.y = controller.isGrounded ?
+            Mathf.Max(verticalVelocity.y, -2f) :
+            verticalVelocity.y + gravity * Time.deltaTime;
     }
 
-    void HandleCrouch()
+    private void ApplyMovement()
     {
-        // Example: when left Ctrl is held, reduce height.
-        if (crouchAction.IsPressed())
-        {
-            // Adjust CharacterController height (ensure you save original values elsewhere)
-            controller.height = 1.0f;
-        }
-        else
-        {
-            controller.height = 2.0f;
-        }
+        Vector3 move = transform.TransformDirection(
+            new Vector3(movementInput.x, 0, movementInput.y)
+        ) * movementSpeed;
+
+        controller.Move((move + verticalVelocity) * Time.fixedDeltaTime);
     }
 
-    void ToggleFlashlight()
+    private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        // Toggle flashlight on/off when F is pressed
-        flashlightOn = !flashlightOn;
-        if (flashlight != null)
-            flashlight.enabled = flashlightOn;
-    }
-
-    void Interact()
-    {
-        // Handle interaction logic when E is pressed.
-        // For example: cast a ray and call an Interact() method on the hit object.
-        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 3f))
+        if (hit.collider.TryGetComponent(out Rigidbody rb) && !rb.isKinematic)
         {
-            hit.collider.gameObject.SendMessage("Interact", SendMessageOptions.DontRequireReceiver);
+            rb.AddForce(controller.velocity * 0.5f, ForceMode.Impulse);
         }
     }
 }

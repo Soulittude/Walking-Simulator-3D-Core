@@ -1,5 +1,5 @@
 {
-    "name": "PlayerControls",
+    "name": "PlayerInputActions",
     "maps": [
         {
             "name": "Player",
@@ -18,7 +18,7 @@
                     "name": "Look",
                     "type": "Value",
                     "id": "af2383f4-1cb2-44ff-a421-1ddf5c7ae094",
-                    "expectedControlType": "Delta",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
