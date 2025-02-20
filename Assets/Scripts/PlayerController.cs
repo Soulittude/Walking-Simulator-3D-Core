@@ -9,9 +9,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float gravity = -9.81f;
 
     [Header("References")]
-    [SerializeField] private Transform head;          // Reference to Head transform
-    [SerializeField] private Transform fpsCamera;     // Reference to FPCameraMain
-    [SerializeField] private Transform groundCheck;   // Reference to GroundCheck
+    [SerializeField] private Transform head;          // Reference to Head transform.
+    [SerializeField] private Transform fpsCamera;     // Reference to FPCameraMain.
+    [SerializeField] private Transform groundCheck;   // Reference to GroundCheck.
 
     [Header("Look")]
     [SerializeField] private float mouseSensitivity = 100f;
