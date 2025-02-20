@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform head;          // Reference to Head transform.
     [SerializeField] private Transform fpsCamera;     // Reference to FPCameraMain.
-    [SerializeField] private Transform groundCheck;   // Reference to GroundCheck.
+    //[SerializeField] private Transform groundCheck;   // This is now disabled. I use unity groundcheck function.
 
     [Header("Look")]
     [SerializeField] private float mouseSensitivity = 100f;
@@ -19,10 +19,12 @@ public class PlayerController : MonoBehaviour
 
     private CharacterController controller;
     private PlayerInputActions inputActions;
+
     private Vector2 movementInput;
     private Vector2 lookInput;
     private Vector3 verticalVelocity;
     private float xRotation;
+
 
     private void Awake()
     {
