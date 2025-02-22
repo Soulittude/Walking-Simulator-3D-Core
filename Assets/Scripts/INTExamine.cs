@@ -2,14 +2,16 @@ using UnityEngine;
 
 public class INTExamine : MonoBehaviour, IInteractable
 {
-    [SerializeField] private string objectName = "Painting";
-    [TextArea][SerializeField] private string description;
+    [Header("Examine Settings")]
+    [SerializeField] private string objectName = "Object";
+    [TextArea][SerializeField] private string examineText = "You see...";
 
     public string GetObjectName() => objectName;
     public InteractionType GetInteractionType() => InteractionType.Examine;
 
     public void OnInteract()
     {
-        Debug.Log(description); // Show in UI later
+        // Show text in UI (replace with your UI system later)
+        Debug.Log(examineText);
     }
 }

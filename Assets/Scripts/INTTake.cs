@@ -2,15 +2,19 @@ using UnityEngine;
 
 public class INTTake : MonoBehaviour, IInteractable
 {
-    [SerializeField] private string itemName = "Book";
+    [Header("Take Settings")]
+    [SerializeField] private string itemName = "Item";
+    [Tooltip("Optional sound when picked up")]
+    [SerializeField] private AudioClip pickupSound;
 
     public string GetObjectName() => itemName;
     public InteractionType GetInteractionType() => InteractionType.Take;
 
     public void OnInteract()
     {
+        // Add to inventory system later
         Debug.Log($"Took {itemName}");
-        // Add to inventory & destroy object
+        if (pickupSound) AudioSource.PlayClipAtPoint(pickupSound, transform.position);
         Destroy(gameObject);
     }
 }
