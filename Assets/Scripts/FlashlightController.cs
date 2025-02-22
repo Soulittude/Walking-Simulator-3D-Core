@@ -6,6 +6,7 @@ public class FlashlightController : MonoBehaviour
     [Header("Settings")]
     /*[SerializeField]*/ private Light flashlight;
     [SerializeField] private float toggleCooldown = 0.3f;
+    [SerializeField] private AudioClip switchSound;
 
     private InputAction flashlightAction;
     private float lastToggleTime;
@@ -30,6 +31,6 @@ public class FlashlightController : MonoBehaviour
     private void ToggleFlashlight()
     {
         flashlight.enabled = !flashlight.enabled;
-        // Add sound effect here later
+        AudioSource.PlayClipAtPoint(switchSound, transform.position);
     }
 }
