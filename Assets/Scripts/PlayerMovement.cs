@@ -20,6 +20,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float standHeight = 2f;
     [SerializeField] private float heightSmoothTime = 0.1f;
 
+    [Header("Player States")]
+    [SerializeField] private bool lockMovement;
+
     private CharacterController controller;
     private Vector3 velocity;
     private float currentHeight;
@@ -38,6 +41,8 @@ public class PlayerMovement : MonoBehaviour
 
     public bool IsGrounded { get; private set; }
     public bool IsMoving { get; private set; }
+    public bool IsExamining { get; set; }
+    public Vector3 Velocity => controller.velocity;
 
     private void Awake()
     {
@@ -53,6 +58,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        if (IsExamining || lockMovement) return;
+
         HandleMovement();
         HandleJump();
         HandleCrouch();
@@ -112,5 +119,16 @@ public class PlayerMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    public void SetMovementLock(bool state)
+    {
+        lockMovement = state;
+        if (state)
+        {
+            // Reset movement when locking
+            controller.Move(Vector3.zero);
+            velocity = Vector3.zero;
+        }
     }
 }
