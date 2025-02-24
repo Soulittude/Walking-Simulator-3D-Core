@@ -58,7 +58,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (IsExamining || lockMovement) return;
+        if (GameManager.Instance.IsPaused || !GameManager.Instance.CanMove) 
+            return;
 
         HandleMovement();
         HandleJump();

@@ -21,10 +21,11 @@ public class FlashlightController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.IsPaused || !GameManager.Instance.CanUseItems) return;
+
         if (flashlightAction.triggered && Time.time > lastToggleTime + toggleCooldown)
         {
             ToggleFlashlight();
-            lastToggleTime = Time.time;
         }
     }
 

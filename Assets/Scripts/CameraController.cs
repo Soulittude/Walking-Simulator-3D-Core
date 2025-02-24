@@ -29,6 +29,8 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.IsPaused || !GameManager.Instance.CanLook) return;
+
         HandleMouseLook();
         HandleHeadBob();
     }

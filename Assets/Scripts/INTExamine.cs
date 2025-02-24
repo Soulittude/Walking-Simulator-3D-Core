@@ -29,11 +29,12 @@ public class INTExamine : MonoBehaviour, IInteractable
 
     void Update()
     {
-        if (_isExamining)
-        {
+        if (!_isExamining) 
+            return;
+
             // Freeze player and camera
-            playerMovement.enabled = false;
-            cameraController.enabled = false;
+            //playerMovement.enabled = false;
+            //cameraController.enabled = false;
 
             // Get mouse input
             float x = Input.GetAxis("Mouse X") * rotateSpeed * Time.deltaTime;
@@ -43,9 +44,11 @@ public class INTExamine : MonoBehaviour, IInteractable
             transform.Rotate(Vector3.up, -x, Space.World);
             transform.Rotate(Vector3.right, y, Space.World);
 
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+            //Cursor.lockState = CursorLockMode.None;
+            //Cursor.visible = true;
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            StopExamine();
     }
 
     public void OnInteract()
@@ -58,6 +61,7 @@ public class INTExamine : MonoBehaviour, IInteractable
 
     private void StartExamine()
     {
+        GameManager.Instance.SetControlState(false, false, false);
         _isExamining = true;
 
         // Save original state
@@ -78,6 +82,8 @@ public class INTExamine : MonoBehaviour, IInteractable
 
     private void StopExamine()
     {
+        GameManager.Instance.SetControlState(true, true, true);
+
         // Restore controls
         playerMovement.enabled = true;
         cameraController.enabled = true;
