@@ -10,12 +10,14 @@ public class CrosshairController : MonoBehaviour
     public void ShowInteractable(InteractionType action, string objectName)
     {
         crosshairDot.SetActive(true);
+        interactionPrompt.gameObject.SetActive(true);
         interactionPrompt.text = $"{GetActionText(action)} {objectName}";
     }
 
     public void HideInteractable()
     {
         crosshairDot.SetActive(false);
+        interactionPrompt.gameObject.SetActive(false);
         interactionPrompt.text = "";
     }
 

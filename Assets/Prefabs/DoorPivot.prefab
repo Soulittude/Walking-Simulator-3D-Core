@@ -155,8 +155,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd5d2988467cdf94ca923bd49718b30f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useName: Door
-  openSound: {fileID: 8300000, guid: 6051d607cbcd8f04594cac52948e65ef, type: 3}
+  objectName: Door
+  cooldown: 2
+  objectAnimator: {fileID: 3714215566392313954}
+  animationTrigger: Activate
+  interactionSound: {fileID: 8300000, guid: 6051d607cbcd8f04594cac52948e65ef, type: 3}
 --- !u!65 &1133806512730871753
 BoxCollider:
   m_ObjectHideFlags: 0
