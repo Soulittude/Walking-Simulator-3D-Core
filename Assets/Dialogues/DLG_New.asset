@@ -12,4 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4359054de9b718740814c7b0d9773b2b, type: 3}
   m_Name: DLG_New
   m_EditorClassIdentifier: 
-  lines: []
+  dialogueLines:
+  - speakerName: wqe
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    charactersPerSecond: 0.3
+    line: "Dialogue Lines Check:\nThe code now verifies that the dialogueLines list
+      in the Dialogue asset isn\u2019t empty before trying to access its elements.\nError
+      Cause: If your Dialogue asset doesn\u2019t have any dialogue lines, attempting
+      to access dialogue.dialogueLines[0] causes an ArgumentOutOfRangeException.\nSolution:
+      Add at least one dialogue line to your Dialogue asset or the code will warn
+      and return without proceeding."

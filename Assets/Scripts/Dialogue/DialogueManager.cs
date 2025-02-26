@@ -80,8 +80,6 @@ public class DialogueManager : MonoBehaviour
                 dialoguePages.Enqueue(dp);
             }
         }
-
-        Debug.Log("Total pages enqueued: " + dialoguePages.Count);
         DisplayNextPage();
     }
 
@@ -135,7 +133,6 @@ public class DialogueManager : MonoBehaviour
 
         DialoguePage currentPage = dialoguePages.Peek();
         speakerNameText.text = currentPage.speakerName;
-        Debug.Log("Displaying page: " + currentPage.pageText);
         typingCoroutine = StartCoroutine(TypeSentence(currentPage.pageText));
     }
 
@@ -172,7 +169,6 @@ public class DialogueManager : MonoBehaviour
             else
             {
                 dialoguePages.Dequeue();
-                Debug.Log("Pages remaining: " + dialoguePages.Count);
                 if (dialoguePages.Count > 0)
                 {
                     DisplayNextPage();
