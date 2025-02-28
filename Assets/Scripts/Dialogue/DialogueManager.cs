@@ -49,7 +49,7 @@ public class DialogueManager : MonoBehaviour
         // Check that the Dialogue asset has at least one dialogue line.
         if (dialogue == null || dialogue.dialogueLines == null || dialogue.dialogueLines.Count == 0)
         {
-            Debug.LogWarning("Dialogue asset has no dialogue lines.");
+            Debug.Log("Dialogue asset has no dialogue lines.");
             return;
         }
 
