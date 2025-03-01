@@ -2281,7 +2281,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialoguePanel: {fileID: 678229822}
-  speakerNameText: {fileID: 1738938962}
+  nameText: {fileID: 1738938962}
   dialogueText: {fileID: 1265779038}
   lettersPerSecond: 30
   maxCharactersPerLine: 30
@@ -2675,7 +2675,7 @@ PrefabInstance:
     - target: {fileID: 7560827377274235505, guid: 5d78ce38f7528d74186b5998e623bbf6,
         type: 3}
       propertyPath: characterName
-      value: Vlad
+      value: Cylinder
       objectReference: {fileID: 0}
     - target: {fileID: 7560827377274235505, guid: 5d78ce38f7528d74186b5998e623bbf6,
         type: 3}

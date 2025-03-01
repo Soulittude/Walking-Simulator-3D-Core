@@ -9,8 +9,8 @@ public class DialogueManager : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private GameObject dialoguePanel; // The dialogue UI panel.
-    [SerializeField] private TMP_Text speakerNameText;   // TextMeshPro for the speaker's name.
-    [SerializeField] private TMP_Text dialogueText;      // TextMeshPro for the dialogue content.
+    [SerializeField] private TextMeshProUGUI nameText;   // TextMeshPro for the speaker's name.
+    [SerializeField] private TextMeshProUGUI dialogueText;      // TextMeshPro for the dialogue content.
 
     [Header("Typewriter Settings")]
     [SerializeField] private float lettersPerSecond = 30f; // Speed for the typewriter effect.
@@ -132,7 +132,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         DialoguePage currentPage = dialoguePages.Peek();
-        speakerNameText.text = currentPage.speakerName;
+        dialogueText.text = currentPage.speakerName;
         typingCoroutine = StartCoroutine(TypeSentence(currentPage.pageText));
     }
 
